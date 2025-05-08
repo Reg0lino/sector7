@@ -1,53 +1,59 @@
 // assets/js/main.js - Game initialization, main loop orchestration
+
 import * as GameState from './core/game-state.js';
 import * as UIUpdater from './ui/ui-updater.js';
 import * as Renderer from './graphics/renderer.js';
+import * as ModalSystem from './ui/modal-system.js';
+import * as BinSystem from './core/bin-system.js';
+import * as ItemFactory from './core/item-factory.js'; // Used by OrderSystem & Conveyor
 import * as Conveyor from './core/conveyor.js';
-import * as InputHandler from './core/input-handler.js';
-import * as BinSystem from './core/bin-system.js'; // New module for bins
-import { ParticleSystem } from './graphics/particle-system.js'; // Assuming ParticleSystem is a class
-import { showModal, hideModal } from './ui/modal-system.js';
+import * as OrderSystem from './core/order-system.js';
 
+// --- Main Game Initialization Function ---
+function initGame() {
+    console.log('Sector 7 Market Scramble: Initializing Game...');
 
-// Wait for the DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Sector 7 Main: DOM fully loaded and parsed.');
-
-    // Initialize core game systems
+    // 1. Initialize Game State (score, time, etc.)
     GameState.init();
-    UIUpdater.init(); // Initialize UI elements if needed
-    BinSystem.initBins(); // Create the sorting bins
-    InputHandler.init(); // Setup drag and drop, etc.
+    console.log('Main: GameState initialized.');
 
-    // Setup Particle Canvas
-    const particleCanvas = document.getElementById('particle-canvas');
-    const gameContainerRect = document.getElementById('game-container').getBoundingClientRect();
-    particleCanvas.width = gameContainerRect.width;
-    particleCanvas.height = gameContainerRect.height;
-    ParticleSystem.init(particleCanvas);
+    // 2. Initialize UI Updater (link to DOM elements and set initial values)
+    UIUpdater.init();
+    console.log('Main: UIUpdater initialized.');
 
-    // Initialize Conveyor (might start spawning items)
+    // 3. Setup Bins
+    BinSystem.initBins();
+    console.log('Main: BinSystem initialized.');
+
+    // 4. Initialize Item Factory
+    // ItemFactory itself doesn't have an init(), but it's loaded.
+    console.log('Main: ItemFactory loaded.');
+
+    // 5. Initialize Conveyor
     Conveyor.init();
+    console.log('Main: Conveyor initialized.');
 
-    // Start the main game loop
-    Renderer.startGameLoop();
+    // 6. Initialize Order System
+    OrderSystem.init();
+    console.log('Main: OrderSystem initialized.');
 
-    console.log('Sector 7 Market Scramble Initialized.');
-    UIUpdater.updateScore(GameState.getScore());
-    UIUpdater.updateTime(GameState.getTimeLeft());
-    UIUpdater.updateOrders("Initializing secure connection...");
+    // 7. Initialize Modal System
+    ModalSystem.init();
+    console.log('Main: ModalSystem initialized. Initial modal should be visible.');
 
+    // GameState.startGame() and Renderer.startGameLoop() are called from ModalSystem
+    // AFTER the player clicks "Start Shift".
+    // OrderSystem.generateNewOrder() will be called when the game actually starts.
+    // Let's modify ModalSystem slightly to trigger the first order.
 
-    // Example: Show a welcome modal
-    showModal(`
-        <h2>Welcome to Sector 7 Market Scramble!</h2>
-        <p>Sort the goods, meet the demands, and don't get caught. The market waits for no one.</p>
-        <button id="start-game-button">Enter the Market</button>
-    `);
+    console.log('Sector 7 Market Scramble: Initialization Complete. Awaiting player action via modal.');
+}
 
-    document.getElementById('start-game-button').addEventListener('click', () => {
-        hideModal();
-        // Potentially start timers or other game actions here if not already started
-        Conveyor.startSpawning(); // Start item spawning after modal close
-    });
+// --- Event Listener for DOMContentLoaded ---
+// Ensures the DOM is fully loaded and parsed before running any game initialization code.
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Main: DOM fully loaded and parsed.');
+    initGame(); // Call our main initialization function
 });
+
+console.log('Main.js: Module Loaded.');
