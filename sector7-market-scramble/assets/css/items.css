@@ -1,2 +1,61 @@
-/* assets/css/items.css - Procedural item styles */ 
-.item { width: 50px; height: 50px; background-color: grey; margin: 5px; display: inline-block; } 
+/* assets/css/effects.css - CSS-driven animations, transitions */
+
+.flicker-mild {
+    animation: flicker-mild-anim 2s infinite alternate steps(3, end);
+}
+@keyframes flicker-mild-anim {
+    0% { opacity: 1; }
+    50% { opacity: 0.9; }
+    100% { opacity: 1; }
+}
+
+.pulse-glow {
+    animation: pulse-glow-anim 1.5s infinite alternate;
+}
+@keyframes pulse-glow-anim {
+    from { box-shadow: 0 0 5px var(--neon-yellow), 0 0 10px var(--neon-yellow); }
+    to   { box-shadow: 0 0 15px var(--neon-yellow), 0 0 25px var(--neon-yellow); }
+}
+
+/* Particle placeholder style - actual particles drawn on canvas */
+.particle-effect {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background-color: var(--neon-yellow);
+    border-radius: 50%;
+    opacity: 0; /* Will be animated by JS or more specific CSS */
+    pointer-events: none;
+}
+
+/* Feedback Message Styles */
+.feedback-message {
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-family: var(--font-primary);
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+}
+.feedback-message.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.feedback-message.success {
+    background-color: rgba(57, 255, 20, 0.8); /* neon-green with alpha */
+    color: var(--dark-bg);
+    border: 1px solid rgba(57, 255, 20, 1);
+}
+.feedback-message.error {
+    background-color: rgba(255, 0, 255, 0.8); /* neon-magenta with alpha */
+    color: #fff;
+    border: 1px solid rgba(255, 0, 255, 1);
+}
+.feedback-message.info {
+    background-color: rgba(0, 255, 255, 0.8); /* neon-cyan with alpha */
+    color: var(--dark-bg);
+    border: 1px solid rgba(0, 255, 255, 1);
+}
