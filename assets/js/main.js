@@ -9,7 +9,7 @@ import * as ItemFactory from './core/item-factory.js'; // Used by OrderSystem & 
 import * as Conveyor from './core/conveyor.js';
 import * as OrderSystem from './core/order-system.js';
 import * as AIDirector from './core/ai-director.js';
-import * as EventManager from './core/event-manager.js';
+import * as EventManager from './gameplay/event-manager.js';
 import * as UpgradesSystem from './core/upgrades-system.js';
 import * as PlayerState from './core/player-state.js'; // Ensure PlayerState is imported
 import * as ItemRenderer from './graphics/item-renderer.js';
@@ -50,13 +50,13 @@ function initGame() {
     OrderSystem.init();
     console.log('Main: OrderSystem initialized.');
 
+    // --- ADD THIS ---
+    EventManager.init();
+    console.log('Main: EventManager initialized.');
+
     // --- INITIALIZE AI DIRECTOR ---
     AIDirector.init();
     console.log('Main: AIDirector initialized.');
-
-    // --- INITIALIZE EVENT MANAGER ---
-    EventManager.init();
-    console.log('Main: EventManager initialized.');
 
     // --- INITIALIZE UPGRADES SYSTEM ---
     UpgradesSystem.init();

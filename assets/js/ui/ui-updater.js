@@ -64,28 +64,29 @@ export function updateTime(secondsLeft) {
     }
 }
 
-export function updateOrders(orderInfo) { // orderInfo can be simple text or a structured object
+export function updateOrders(orderInfo) {
     if (orderDisplay) {
         if (typeof orderInfo === 'string') {
             orderDisplay.textContent = orderInfo;
         } else if (orderInfo && typeof orderInfo === 'object') {
-            // Example for a structured order object:
-            // orderInfo = { item: "Data Chip", quantity: "1/3", target: "Alpha" }
-            let qtyText = orderInfo.progress !== undefined
-                ? `${orderInfo.progress}/${orderInfo.quantity || 'N/A'}`
-                : `${orderInfo.quantity || 'N/A'}`;
-            // If quantity is already a string like "1/3", just use it
-            if (typeof orderInfo.quantity === 'string') {
-                qtyText = orderInfo.quantity;
+            // Example: orderInfo = { fixer: "Whisper", item: "Data Chip", quantity: "1/3", target: "Alpha", fullText: "..." }
+            let orderHTML = '';
+            if (orderInfo.fixer) {
+                orderHTML += `<span class="order-fixer">${orderInfo.fixer}:</span> `;
             }
-            let orderHTML = `REQ: <span class="order-quantity">${qtyText}</span> `;
-            orderHTML += `<span class="order-item-name">${orderInfo.item || 'UNKNOWN ITEM'}</span>`;
-            if(orderInfo.target) {
-                orderHTML += ` → <span class="order-target-bin">${orderInfo.target}</span>`;
+            if (orderInfo.fullText && orderInfo.fullText.includes('\n')) {
+                // Replace \n with <br> for HTML display, and sanitize slightly
+                orderHTML = orderInfo.fullText.replace(/\n/g, '<br>').replace(/</g, '<').replace(/>/g, '>');
+            } else {
+                orderHTML += `REQ: <span class="order-quantity">${orderInfo.quantity || 'N/A'}</span> `;
+                orderHTML += `<span class="order-item-name">${orderInfo.item || 'UNKNOWN ITEM'}</span>`;
+                if (orderInfo.target) {
+                    orderHTML += ` → <span class="order-target-bin">${orderInfo.target}</span>`;
+                }
             }
             orderDisplay.innerHTML = orderHTML;
         } else {
-            orderDisplay.textContent = "Order data corrupted...";
+            orderDisplay.textContent = "Awaiting transmission...";
         }
     } else {
         console.warn('UIUpdater: Attempted to update orders, but orderDisplay element is not linked.');

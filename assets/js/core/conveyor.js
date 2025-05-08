@@ -12,7 +12,8 @@ const SPAWN_INTERVAL_MIN = 2000; // Minimum ms between spawns
 const SPAWN_INTERVAL_MAX = 4000; // Maximum ms between spawns
 let nextSpawnTime = calculateNextSpawnTime();
 
-const CONVEYOR_SPEED = 50; // Pixels per second
+const BASE_CONVEYOR_SPEED = 50; // Pixels per second - Now a base speed
+let currentSpeedMultiplier = 1.0;
 
 function calculateNextSpawnTime() {
     return Math.random() * (SPAWN_INTERVAL_MAX - SPAWN_INTERVAL_MIN) + SPAWN_INTERVAL_MIN;
@@ -26,14 +27,23 @@ export function init() {
     activeItems = [];
     spawnTimer = 0;
     nextSpawnTime = calculateNextSpawnTime();
+    currentSpeedMultiplier = 1.0; // Reset on init
     conveyorBeltElement.innerHTML = ''; // Clear any old items on init
     console.log("Conveyor: Initialized.");
+}
+
+// --- ADD THIS FUNCTION ---
+export function setSpeedMultiplier(multiplier) {
+    currentSpeedMultiplier = Math.max(0.1, multiplier); // Prevent stopping or reversing for now
+    console.log(`Conveyor: Speed multiplier set to ${currentSpeedMultiplier}. Effective speed: ${BASE_CONVEYOR_SPEED * currentSpeedMultiplier}px/s`);
 }
 
 export function update(deltaTime) { // deltaTime in milliseconds
     if (!GameState.isGameActive() || GameState.isGamePaused()) {
         return;
     }
+
+    const effectiveSpeed = BASE_CONVEYOR_SPEED * currentSpeedMultiplier; // Use multiplier
 
     // --- Item Spawning ---
     spawnTimer += deltaTime;
@@ -47,7 +57,7 @@ export function update(deltaTime) { // deltaTime in milliseconds
     const itemsToRemove = [];
     for (let i = 0; i < activeItems.length; i++) {
         const item = activeItems[i];
-        item.position.x += (CONVEYOR_SPEED * (deltaTime / 1000)); // Move item
+        item.position.x += (effectiveSpeed * (deltaTime / 1000)); // Use effectiveSpeed
 
         // Update visual position
         ItemRenderer.updateItemPosition(item.id, item.position.x);

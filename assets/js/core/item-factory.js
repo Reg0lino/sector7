@@ -12,26 +12,36 @@ export const ITEM_TYPES = {
 
 const ITEM_VISUAL_PROFILES = {
     [ITEM_TYPES.DATACHIP]: {
-        color: 'var(--neon-cyan)', shape: 'rectangle_stacked', texture: 'scanlines',
-        width: '45px', height: '55px'
+        color: 'var(--neon-cyan)',
+        shape: 'stacked_rect_css', // Keeping this as CSS-based for now for contrast
+        texture: 'scanlines',
+        segmentCount: 3 // For CSS renderer
     },
     [ITEM_TYPES.BIOMOD]: {
-        color: 'var(--neon-magenta)', coreColor: '#ff80c0', shape: 'amorphous_blob', texture: 'pulsing_core',
-        width: '55px', height: '55px'
+        color: 'var(--neon-magenta)',
+        coreColor: '#ff80c0',
+        shape: 'organic_svg', // NEW shape identifier for SVG rendering
+        basePathId: 0, // We can have a few predefined SVG path styles
+        texture: 'pulsing_core_svg' // For SVG core
     },
     [ITEM_TYPES.HARDWARE]: {
-        color: '#aaaaaa', shape: 'composite_geometric', texture: 'metallic_sheen',
-        width: '55px', height: '45px'
+        color: '#aaaaaa',
+        secondaryColor: '#777777', // For details
+        shape: 'component_svg', // NEW shape identifier for SVG rendering
+        componentLayoutId: 0, // For different arrangements of SVG rects/circles
+        texture: 'metallic_sheen_svg' // Hint for potential SVG filters later
     },
     [ITEM_TYPES.SCRAP]: {
-        color: '#8B4513', shape: 'irregular_cluster', texture: 'rust_patches',
-        width: '50px', height: '50px'
+        color: '#8B4513',
+        shape: 'irregular_cluster_css', // Keep as CSS for now
+        texture: 'rust_patches'
     },
     [ITEM_TYPES.CORRUPTED]: {
-        color: '#800080', shape: 'rectangle_stacked',
+        color: '#800080',
+        shape: 'stacked_rect_css', // Can share CSS rendering but with different color/glitch
         texture: 'static_flicker',
-        animation: 'glitch-flicker-strong',
-        width: '50px', height: '50px'
+        segmentCount: 3,
+        isGlitchedEffect: true // Specific flag for CSS renderer
     }
 };
 
@@ -81,6 +91,15 @@ export function createItem(type, overrides = {}) {
     }
     if (item.isFragile) {
         item.visualProfile.borderStyle = 'thin-dashed-warning'; // Class name uses hyphens
+    }
+
+    // Example for BIOMOD basePathId selection in createItem if not overridden
+    if (type === ITEM_TYPES.BIOMOD && overrides.basePathId === undefined) {
+        item.visualProfile.basePathId = Math.floor(Math.random() * 2); // Assuming we'll define 2 base paths for biomods
+    }
+    // Example for HARDWARE componentLayoutId
+    if (type === ITEM_TYPES.HARDWARE && overrides.componentLayoutId === undefined) {
+        item.visualProfile.componentLayoutId = Math.floor(Math.random() * 2); // Assuming 2 layouts
     }
 
     console.log(`ItemFactory: Created item - ID: ${item.id}, Type: ${item.type}`);

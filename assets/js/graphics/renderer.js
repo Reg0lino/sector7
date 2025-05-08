@@ -3,7 +3,7 @@
 import * as GameState from '../core/game-state.js';
 import * as UIUpdater from '../ui/ui-updater.js';
 import * as Conveyor from '../core/conveyor.js';
-import * as EventManager from '../core/event-manager.js';
+import * as EventManager from '../gameplay/event-manager.js';
 // Future imports: Conveyor, ItemSystem, ParticleSystem, etc.
 
 let lastTimestamp = 0;      // Timestamp of the last frame
