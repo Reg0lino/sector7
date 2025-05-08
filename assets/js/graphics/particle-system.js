@@ -54,3 +54,6 @@ export function removeData(key) {
 }
 
 console.log("LocalStorage: Module Loaded.");
+
+// Filename: particle-system.js
+// Directory: assets/js/graphics/

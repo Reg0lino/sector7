@@ -4,6 +4,7 @@ import * as AIDirector from './ai-director.js';
 import * as ItemFactory from './item-factory.js';
 import * as GameState from './game-state.js';
 import * as UIUpdater from '../ui/ui-updater.js'; // To update order display
+import { getAllBinConfigs } from './bin-system.js';
 
 let currentGeneratedOrder = null;
 
@@ -60,26 +61,31 @@ export function generateNewOrder() {
     return currentGeneratedOrder;
 }
 
-export function fulfillOrderItem(itemType) {
-    if (!currentGeneratedOrder || !GameState.isGameActive()) return false;
-
-    if (currentGeneratedOrder.itemTypeRequired === itemType &&
-        currentGeneratedOrder.quantityCollected < currentGeneratedOrder.quantityRequired) {
+/**
+ * Attempts to fulfill the current order with the dropped item and target bin.
+ * @param {object} droppedItemData - The data of the item dropped.
+ * @param {object} targetBinConfig - The configuration of the bin the item was dropped into.
+ * @returns {boolean} True if the item contributed to the order, false otherwise.
+ */
+export function attemptToFulfillOrder(droppedItemData, targetBinConfig) {
+    if (!currentGeneratedOrder || !GameState.isGameActive() || currentGeneratedOrder.quantityCollected >= currentGeneratedOrder.quantityRequired) {
+        return false;
+    }
+    if (currentGeneratedOrder.itemTypeRequired === droppedItemData.type &&
+        currentGeneratedOrder.targetBinLabel === targetBinConfig.label) {
         currentGeneratedOrder.quantityCollected++;
-        UIUpdater.updateOrders({ // Update display with progress
+        UIUpdater.updateOrders({
             item: currentGeneratedOrder.itemNameForDisplay,
             quantity: `${currentGeneratedOrder.quantityCollected}/${currentGeneratedOrder.quantityRequired}`,
             target: currentGeneratedOrder.targetBinLabel
         });
-        console.log(`OrderSystem: Item ${itemType} fulfilled. Progress: ${currentGeneratedOrder.quantityCollected}/${currentGeneratedOrder.quantityRequired}`);
-
+        UIUpdater.showFeedbackMessage(`+1 ${droppedItemData.name} for order!`, "success");
         if (currentGeneratedOrder.quantityCollected >= currentGeneratedOrder.quantityRequired) {
             orderComplete();
-            return true; // Item fulfilled, and order completed
         }
-        return true; // Item fulfilled, order ongoing
+        return true;
     }
-    return false; // Item not part of current order or order already complete
+    return false;
 }
 
 function orderComplete() {
@@ -124,3 +130,6 @@ export function getCurrentOrderDetails() {
 }
 
 console.log("OrderSystem: Module Loaded.");
+
+// Filename: order-system.js
+// Directory: assets/js/core/

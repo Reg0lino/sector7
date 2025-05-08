@@ -1,6 +1,9 @@
 // assets/js/core/bin-system.js - Manages the sorting bins
 
-// import * as InputHandler from './input-handler.js'; // For attaching drop listeners (Future)
+import * as Conveyor from './conveyor.js';
+import * as OrderSystem from './order-system.js';
+import * as UIUpdater from '../ui/ui-updater.js';
+import * as GameState from './game-state.js';
 
 const BINS_CONFIG = [
     { id: 'bin-tech', label: 'TECH', accepts: ['datachip', 'hardware_common'], icon: '⚙️', color: 'var(--neon-cyan)' },
@@ -39,9 +42,6 @@ export function initBins() {
         binEl.appendChild(labelEl);
         interactionArea.appendChild(binEl);
 
-        // Future: Add drag event listeners (could be managed by InputHandler or here)
-        // InputHandler.addBinEventListeners(binEl);
-
         // Basic Drag and Drop listeners (will need actual draggable items later)
         binEl.addEventListener('dragover', (event) => {
             event.preventDefault(); // Allow dropping
@@ -53,14 +53,68 @@ export function initBins() {
         binEl.addEventListener('drop', (event) => {
             event.preventDefault();
             binEl.classList.remove('drag-over');
-            const itemId = event.dataTransfer.getData('text/plain'); // Assuming item ID is passed
-            console.log(`BinSystem: Item ${itemId} dropped on ${binConfig.id}`);
-            // Here you would call a game logic function to check if the sort is correct
-            // e.g., GameLogic.handleSort(itemId, binConfig.id);
-            // UIUpdater.showFeedbackMessage(`Item ${itemId} to ${binConfig.label}`, 'info');
+
+            // --- CRITICAL LINE FOR GETTING DRAG DATA ---
+            let itemId = null;
+            if (event.dataTransfer) {
+                itemId = event.dataTransfer.getData('text/plain');
+            }
+
+            // --- ADD MORE LOGGING HERE ---
+            console.log(`BinSystem Drop: Raw dataTransfer.getData('text/plain') retrieved: "${itemId}"`);
+
+            if (!itemId || itemId.trim() === "") {
+                console.error("BinSystem Drop: Retrieved item ID is null, empty, or invalid.");
+                UIUpdater.showFeedbackMessage("SORT ERROR: Invalid item data transferred!", "error");
+                return;
+            }
+
+            const droppedItemData = Conveyor.getItemData(itemId);
+
+            if (!droppedItemData) {
+                console.error(`BinSystem Drop: Conveyor.getItemData failed to find item with ID: "${itemId}". Active conveyor items:`, Conveyor.getAllActiveItems ? Conveyor.getAllActiveItems() : "Couldn't fetch active items.");
+                UIUpdater.showFeedbackMessage(`SORT ERROR: Item [${itemId.substring(0,10)}...] not found on conveyor!`, "error");
+                return;
+            }
+
+            // ...existing drop logic...
+            console.log(`BinSystem: Item '${droppedItemData.name}' (Type: ${droppedItemData.type}, ID: ${itemId}) dropped on Bin '${binConfig.label}' (ID: ${binConfig.id})`);
+            Conveyor.removeItemFromConveyor(itemId);
+            const acceptsItemType = binConfig.accepts.includes(droppedItemData.type);
+            const basePenalty = -10;
+            let penalty = basePenalty;
+
+            if (droppedItemData.isFragile) {
+                penalty *= 3; // Fragile items have triple penalty for any misplacement
+                UIUpdater.showFeedbackMessage(`FRAGILE ITEM '${droppedItemData.name}' DAMAGED!`, "error", 4000);
+            }
+
+            if (acceptsItemType) {
+                const orderFulfilled = OrderSystem.attemptToFulfillOrder(droppedItemData, binConfig);
+                if (orderFulfilled) {
+                    // Success, no penalty (OrderSystem handles reward)
+                } else {
+                    const currentOrder = OrderSystem.getCurrentOrderDetails();
+                    if (currentOrder && currentOrder.itemTypeRequired === droppedItemData.type && currentOrder.targetBinId !== binConfig.id) {
+                        UIUpdater.showFeedbackMessage(`FRAGILE: WRONG BIN! '${droppedItemData.name}' belongs elsewhere.`, "error");
+                        GameState.addScore(penalty - 5); // Extra -5 for order item in wrong bin
+                    } else if (binConfig.id === 'bin-discard' && (droppedItemData.type === 'scrap' || droppedItemData.type === 'corrupted_data')) {
+                        UIUpdater.showFeedbackMessage(`'${droppedItemData.name}' discarded.`, "info");
+                        GameState.addScore(droppedItemData.isFragile ? -5 : 5); // Fragile items shouldn't be discarded for points
+                    } else {
+                        UIUpdater.showFeedbackMessage(`Misplaced '${droppedItemData.name}'.`, "error");
+                        GameState.addScore(penalty);
+                    }
+                    UIUpdater.updateScore(GameState.getScore());
+                }
+            } else {
+                UIUpdater.showFeedbackMessage(`INVALID SORT! '${binConfig.label}' doesn't accept '${droppedItemData.type}'.`, "error");
+                GameState.addScore(penalty - 15); // Base penalty for this is -25, fragile makes it much worse
+                UIUpdater.updateScore(GameState.getScore());
+            }
         });
     });
-    console.log('BinSystem: Bins initialized dynamically.');
+    console.log('BinSystem: Bins initialized dynamically with enhanced drop logic.');
 }
 
 export function getBinConfigById(binId) {
@@ -72,3 +126,6 @@ export function getAllBinConfigs() {
 }
 
 console.log("BinSystem: Module Loaded.");
+
+// Filename: bin-system.js
+// Directory: assets/js/core/

@@ -98,3 +98,6 @@ export function stopGameLoop() {
 }
 
 console.log('Renderer: Module Loaded.');
+
+// Filename: renderer.js
+// Directory: assets/js/graphics/

@@ -3,6 +3,7 @@
 import * as ItemFactory from './item-factory.js';
 import * as ItemRenderer from '../graphics/item-renderer.js'; // We will create this next
 import * as GameState from './game-state.js'; // To check if game is active
+import * as UIUpdater from '../ui/ui-updater.js';
 
 const conveyorBeltElement = document.getElementById('conveyor-belt');
 let activeItems = []; // Array to hold data of items currently on the belt
@@ -51,6 +52,29 @@ export function update(deltaTime) { // deltaTime in milliseconds
         // Update visual position
         ItemRenderer.updateItemPosition(item.id, item.position.x);
 
+        // --- VOLATILE ITEM CHECK ---
+        if (item.isVolatile && item.spawnTime && item.lifespan) {
+            const timeAlive = performance.now() - item.spawnTime;
+            // Visual feedback for timer (e.g., blinking faster - can be done in ItemRenderer based on timeAlive/lifespan)
+            const itemElement = document.getElementById(item.id);
+            if (itemElement) {
+                const urgency = Math.max(0, 1 - (timeAlive / item.lifespan));
+                if (urgency < 0.3) {
+                    itemElement.style.animationDuration = `${0.2 + urgency * 0.5}s`;
+                } else {
+                    itemElement.style.animationDuration = '';
+                }
+            }
+            if (timeAlive >= item.lifespan) {
+                itemsToRemove.push(item);
+                console.log(`Conveyor: VOLATILE Item ${item.id} exploded!`);
+                UIUpdater.showFeedbackMessage(`VOLATILE OVERLOAD: '${item.name}' exploded!`, "error", 4000);
+                GameState.addScore(-50);
+                UIUpdater.updateScore(GameState.getScore());
+                continue;
+            }
+        }
+
         // Check if item is off-screen (assuming conveyor width)
         const conveyorWidth = conveyorBeltElement.offsetWidth;
         if (item.position.x > conveyorWidth + 50) { // +50 as a buffer
@@ -89,6 +113,10 @@ export function getItemData(itemId) {
     return activeItems.find(item => item.id === itemId);
 }
 
+export function getAllActiveItems() {
+    return activeItems.map(item => ({ id: item.id, type: item.type, name: item.name, x: item.position.x })); // Return a simplified version for logging
+}
+
 export function removeItemFromConveyor(itemId) {
     const itemToRemove = activeItems.find(item => item.id === itemId);
     if (itemToRemove) {
@@ -101,3 +129,6 @@ export function removeItemFromConveyor(itemId) {
 }
 
 console.log("Conveyor: Module Loaded.");
+
+// Filename: conveyor.js
+// Directory: assets/js/core/

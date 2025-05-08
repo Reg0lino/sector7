@@ -248,3 +248,6 @@ document.addEventListener('showmodal', (event) => {
 
 
 console.log("ModalSystem: Module Loaded.");
+
+// Filename: modal-system.js
+// Directory: assets/js/ui/

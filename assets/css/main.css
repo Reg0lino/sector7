@@ -237,7 +237,7 @@ body {
     min-height: 120px;
 }
 
-.sorting-bin {
+sorting-bin {
     width: clamp(120px, 18vw, 180px);
     height: 90px;
     border: 2px dashed var(--bin-glow-color, var(--border-color));
@@ -384,6 +384,77 @@ body {
     font-size: 1.2em;
 }
 
+/* Log Feed Area - REVISED STYLES */
+#log-feed-area {
+    position: absolute;
+    bottom: calc(120px + 10px); /* Adjust if your interaction-area height changes */
+    left: 50%;
+    transform: translateX(-50%); /* Center it horizontally */
+    width: clamp(400px, 60vw, 700px); /* Wider */
+    height: clamp(60px, 8vh, 80px);  /* Shorter */
+    background-color: rgba(10, 10, 18, 0.75); /* Slightly more opaque */
+    border: 1px solid var(--border-color-alt, #ff00ff);
+    border-radius: 4px; /* Slightly less rounded */
+    padding: 5px 8px; /* Adjust padding */
+    box-shadow: 0 0 8px rgba(255, 0, 255, 0.15); /* Softer shadow */
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 550;
+    scrollbar-width: thin;
+    scrollbar-color: var(--neon-magenta) var(--dark-bg);
+}
+
+#log-feed-area::-webkit-scrollbar {
+    width: 6px; /* Thinner scrollbar */
+}
+#log-feed-area::-webkit-scrollbar-track {
+    background: rgba(20, 18, 32, 0.5); /* mid-bg with some transparency */
+}
+#log-feed-area::-webkit-scrollbar-thumb {
+    background-color: var(--neon-magenta);
+    border-radius: 3px;
+}
+#log-feed-area::-webkit-scrollbar-thumb:hover {
+    background-color: var(--neon-yellow);
+}
+
+#log-feed-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.log-entry {
+    padding: 3px 5px; /* Slightly smaller padding */
+    margin-bottom: 3px;
+    border-radius: 2px;
+    font-family: var(--font-secondary, 'Roboto Mono', monospace);
+    font-size: clamp(0.7rem, 1.2vw, 0.8rem); /* Smaller font size */
+    line-height: 1.25; /* Adjust line height */
+    opacity: 0.9;
+    word-wrap: break-word;
+}
+
+/* Styles for different message types remain the same (log-success, log-error, etc.) */
+/* .log-entry.log-success { ... } etc. already present */
+
+/* For the text streaming/glitch - this class will be added to the li by JS */
+.log-entry.is-streaming span {
+    opacity: 0; /* Start hidden, JS will make them appear */
+}
+
+.log-entry .glitch-char-temp {
+    color: var(--neon-yellow);
+    display: inline-block;
+    position: relative; /* For potential minor transform glitches */
+    animation: quick-glitch-char 0.05s ease-in-out;
+}
+
+@keyframes quick-glitch-char {
+    0% { transform: translate(0,0) skew(0); opacity: 0.7; }
+    50% { transform: translate(1px, -1px) skew(5deg); opacity: 1; }
+    100% { transform: translate(0,0) skew(0); opacity: 0.7; }
+}
 
 /* --- TEMPORARY DEBUG STYLES (Comment out for production) --- */
 /*

@@ -12,6 +12,7 @@ import * as AIDirector from './core/ai-director.js';
 import * as EventManager from './core/event-manager.js';
 import * as UpgradesSystem from './core/upgrades-system.js';
 import * as PlayerState from './core/player-state.js'; // Ensure PlayerState is imported
+import * as ItemRenderer from './graphics/item-renderer.js';
 
 // --- Main Game Initialization Function ---
 function initGame() {
@@ -24,6 +25,14 @@ function initGame() {
     // 2. Initialize UI Updater (link to DOM elements and set initial values)
     UIUpdater.init();
     console.log('Main: UIUpdater initialized.');
+
+    // --- Ensure ItemRenderer is defined and initTooltip is callable ---
+    if (typeof ItemRenderer !== 'undefined' && typeof ItemRenderer.initTooltip === 'function') {
+        ItemRenderer.initTooltip();
+        console.log('Main: ItemTooltip initialized.');
+    } else {
+        console.error('Main: ItemRenderer or ItemRenderer.initTooltip is not defined! Check import.');
+    }
 
     // 3. Setup Bins
     BinSystem.initBins();
@@ -74,3 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('Main.js: Module Loaded.');
+
+// Filename: main.js
+// Directory: assets/js/

@@ -177,3 +177,6 @@ export function isGamePaused() { return gamePaused; }
 export function getInitialTime() { return initialTime; }
 
 console.log('GameState: Module Loaded.');
+
+// Filename: game-state.js
+// Directory: assets/js/core/

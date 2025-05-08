@@ -141,3 +141,6 @@ export function handleItemMissed(itemData) {
 }
 
 console.log("GameLogic: Module Loaded.");
+
+// Filename: game-logic.js
+// Directory: assets/js/core/

@@ -2,7 +2,7 @@
 
 let itemIdCounter = 0; // Simple unique ID generator for now
 
-const ITEM_TYPES = {
+export const ITEM_TYPES = {
     DATACHIP: 'datachip',
     BIOMOD: 'biomod',
     HARDWARE: 'hardware_common',
@@ -16,20 +16,20 @@ const ITEM_VISUAL_PROFILES = {
         width: '45px', height: '55px'
     },
     [ITEM_TYPES.BIOMOD]: {
-        color: '#ff3366', shape: 'amorphous_blob', texture: 'pulsing_core',
+        color: 'var(--neon-magenta)', coreColor: '#ff80c0', shape: 'amorphous_blob', texture: 'pulsing_core',
         width: '55px', height: '55px'
     },
     [ITEM_TYPES.HARDWARE]: {
-        color: '#a0a0a0', shape: 'composite_geometric', texture: 'metallic_grid',
+        color: '#aaaaaa', shape: 'composite_geometric', texture: 'metallic_sheen',
         width: '55px', height: '45px'
     },
     [ITEM_TYPES.SCRAP]: {
-        color: '#795548', shape: 'irregular_cluster', texture: 'rust_patches',
+        color: '#8B4513', shape: 'irregular_cluster', texture: 'rust_patches',
         width: '50px', height: '50px'
     },
     [ITEM_TYPES.CORRUPTED]: {
-        color: '#6a0dad', shape: 'rectangle_stacked',
-        texture: 'heavy_static_glitch',
+        color: '#800080', shape: 'rectangle_stacked',
+        texture: 'static_flicker',
         animation: 'glitch-flicker-strong',
         width: '50px', height: '50px'
     }
@@ -47,16 +47,18 @@ export function createItem(type, overrides = {}) {
         return null;
     }
 
+    const VOLATILE_LIFESPAN_MS = 8000; // 8 seconds
+
     itemIdCounter++;
     const baseItem = {
-        id: `item-${itemIdCounter}-${Date.now().toString(36)}`, // More unique ID
+        id: `item-${itemIdCounter}-${Date.now().toString(36)}${Math.random().toString(36).substring(2,5)}`, // More unique ID
         type: type,
         name: generateItemName(type), // Placeholder for procedural name generation
         value: calculateItemValue(type), // Placeholder
-        isFragile: false,
-        isVolatile: false,
-        corruptionLevel: 0, // 0 to 1
-        visualProfile: { ...ITEM_VISUAL_PROFILES[type] }, // Copy base profile
+        isFragile: (type !== ITEM_TYPES.SCRAP && type !== ITEM_TYPES.CORRUPTED && Math.random() < 0.15),
+        isVolatile: (type !== ITEM_TYPES.SCRAP && type !== ITEM_TYPES.CORRUPTED && Math.random() < 0.10),
+        corruptionLevel: (type === ITEM_TYPES.CORRUPTED) ? (Math.random() * 0.5 + 0.3) : (Math.random() < 0.05 ? Math.random() * 0.4 : 0),
+        visualProfile: JSON.parse(JSON.stringify(ITEM_VISUAL_PROFILES[type])), // Deep copy base profile
         position: { x: 0, y: 0 }, // Position on conveyor, will be updated
         // Add more properties: weight, specific sub-type, required bin, etc.
     };
@@ -65,12 +67,17 @@ export function createItem(type, overrides = {}) {
     const item = { ...baseItem, ...overrides };
 
     // Post-process visual profile based on properties like corruption
-    if (item.corruptionLevel > 0.5) {
-        item.visualProfile.color = 'darkmagenta';
-        item.visualProfile.texture = 'heavy_static';
+    if (item.corruptionLevel > 0.3 && item.type !== ITEM_TYPES.CORRUPTED) {
+        item.visualProfile.color = '#6a0dad';
+        item.visualProfile.originalColor = ITEM_VISUAL_PROFILES[type].color;
+    }
+    if (item.type === ITEM_TYPES.CORRUPTED) {
+        item.visualProfile.color = ITEM_VISUAL_PROFILES[ITEM_TYPES.CORRUPTED].color;
     }
     if (item.isVolatile) {
         item.visualProfile.animation = 'fast-pulse-red'; // Class name uses hyphens
+        item.spawnTime = performance.now();
+        item.lifespan = VOLATILE_LIFESPAN_MS;
     }
     if (item.isFragile) {
         item.visualProfile.borderStyle = 'thin-dashed-warning'; // Class name uses hyphens
@@ -104,7 +111,7 @@ function calculateItemValue(type) {
     return baseValues[type] || 0;
 }
 
-// Expose ITEM_TYPES for other modules to use
-export { ITEM_TYPES };
-
 console.log("ItemFactory: Module Loaded.");
+
+// Filename: item-factory.js
+// Directory: assets/js/core/

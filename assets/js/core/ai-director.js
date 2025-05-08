@@ -103,3 +103,6 @@ export function getAdjustedConveyorParameters() {
 // }
 
 console.log("AIDirector: Module Loaded.");
+
+// Filename: ai-director.js
+// Directory: assets/js/core/

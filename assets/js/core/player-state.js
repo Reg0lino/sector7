@@ -99,3 +99,6 @@ export function getPurchasedUpgradeIds() {
 
 
 console.log("PlayerState: Module Loaded.");
+
+// Filename: player-state.js
+// Directory: assets/js/core/

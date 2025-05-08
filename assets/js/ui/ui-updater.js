@@ -6,10 +6,15 @@ import * as GameState from '../core/game-state.js'; // To get initial time
 let scoreDisplay = null;
 let timeDisplay = null;
 let orderDisplay = null;
-let feedbackContainer = null;
-// Add more for other UI elements as needed, e.g., modal elements
+// let feedbackContainer = null; // We removed this from HTML
+let logFeedList = null; // Reference to the UL element for the log
 
 const MAX_FEEDBACK_MESSAGES = 3; // Max messages to show at once
+const MAX_LOG_ENTRIES = 20; // Keep the log from growing indefinitely
+const TYPING_SPEED_MS = 20; // Milliseconds per character
+const GLITCH_CHANCE = 0.10; // 10% chance for a character to glitch briefly
+const GLITCH_DURATION_MS = 40;
+const GLITCH_CHARS = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
 let activeFeedbackMessages = []; // To keep track of message elements
 
 // --- Initialization: Called once when the game loads to grab DOM elements ---
@@ -17,13 +22,13 @@ export function init() {
     scoreDisplay = document.getElementById('current-score-display');
     timeDisplay = document.getElementById('time-left-display');
     orderDisplay = document.getElementById('current-order-display');
-    feedbackContainer = document.getElementById('feedback-message-container');
+    logFeedList = document.getElementById('log-feed-list');
 
     // Safety checks to ensure all elements were found
     if (!scoreDisplay) console.error('UIUpdater Error: Score display element not found! ID: current-score-display');
     if (!timeDisplay) console.error('UIUpdater Error: Time display element not found! ID: time-left-display');
     if (!orderDisplay) console.error('UIUpdater Error: Order display element not found! ID: current-order-display');
-    if (!feedbackContainer) console.error('UIUpdater Error: Feedback message container not found! ID: feedback-message-container');
+    if (!logFeedList) console.error('UIUpdater Error: Log feed list element (#log-feed-list) not found!');
 
     // Set initial text if desired (or use HTML defaults)
     updateScore(GameState.getScore()); // Get initial score from GameState
@@ -87,41 +92,97 @@ export function updateOrders(orderInfo) { // orderInfo can be simple text or a s
     }
 }
 
-export function showFeedbackMessage(message, type = 'info', duration = 2500) { // Shorter default duration
-    if (!feedbackContainer) {
-        console.warn('UIUpdater: Feedback container not found, cannot show message.');
+async function streamTextWithGlitch(targetElement, fullMessage) {
+    targetElement.innerHTML = '';
+    targetElement.classList.add('is-streaming');
+    const characters = Array.from(fullMessage);
+    for (let i = 0; i < characters.length; i++) {
+        const char = characters[i];
+        const span = document.createElement('span');
+        if (char === ' ' && Math.random() < GLITCH_CHANCE / 2) {
+            const tempGlitchChar = GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+            span.textContent = tempGlitchChar;
+            span.classList.add('glitch-char-temp');
+            targetElement.appendChild(span);
+            await new Promise(resolve => setTimeout(resolve, GLITCH_DURATION_MS / 2));
+            span.textContent = char;
+            span.classList.remove('glitch-char-temp');
+            span.style.opacity = 1;
+        } else if (char !== ' ' && Math.random() < GLITCH_CHANCE) {
+            const tempGlitchChar = GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+            span.textContent = tempGlitchChar;
+            span.classList.add('glitch-char-temp');
+            targetElement.appendChild(span);
+            await new Promise(resolve => setTimeout(resolve, GLITCH_DURATION_MS));
+            span.textContent = char;
+            span.classList.remove('glitch-char-temp');
+            span.style.opacity = 1;
+        } else {
+            span.textContent = char;
+            targetElement.appendChild(span);
+            span.style.opacity = 1;
+        }
+        await new Promise(resolve => setTimeout(resolve, TYPING_SPEED_MS));
+    }
+    targetElement.classList.remove('is-streaming');
+}
+
+export function showFeedbackMessage(message, type = 'info') {
+    if (typeof message !== 'string') {
+        console.error("UIUpdater: showFeedbackMessage called with non-string message. Message:", message);
+        message = String(message || "System Alert: Undefined message content.");
+    }
+    if (!logFeedList) {
+        console.warn('UIUpdater: Log feed list not found, cannot show message.');
         return;
     }
+    const logEntryEl = document.createElement('li');
+    logEntryEl.classList.add('log-entry', `log-${type}`);
+    const timestamp = `[${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}] `;
+    const fullMessageWithTimestamp = timestamp + message;
+    // Insert at the top
+    if (logFeedList.firstChild) {
+        logFeedList.insertBefore(logEntryEl, logFeedList.firstChild);
+    } else {
+        logFeedList.appendChild(logEntryEl);
+    }
+    streamTextWithGlitch(logEntryEl, fullMessageWithTimestamp);
+    // Scroll to top to show newest
+    if (logFeedList.parentElement) {
+        logFeedList.parentElement.scrollTop = 0;
+    }
+    // Remove oldest (bottom) if over limit
+    while (logFeedList.children.length > MAX_LOG_ENTRIES) {
+        // console.log(`UIUpdater Loop Start: children.length=${logFeedList.children.length}`); // Optional: for deep debugging
+        const oldestChild = logFeedList.lastChild;
 
-    // Remove oldest message if max is reached
-    if (activeFeedbackMessages.length >= MAX_FEEDBACK_MESSAGES) {
-        const oldestMessage = activeFeedbackMessages.shift(); // Get the first (oldest) element
-        if (oldestMessage && oldestMessage.parentElement) {
-            oldestMessage.remove(); // Remove it from DOM immediately
+        if (!oldestChild) {
+            // If there's no oldestChild, we absolutely cannot proceed.
+            // console.error("UIUpdater FATAL: logFeedList.lastChild is null even though children.length > MAX. Breaking.");
+            break;
+        }
+
+        // Log the state of oldestChild JUST BEFORE trying to access classList
+        // console.log("UIUpdater Pre-Check: oldestChild is:", oldestChild, "classList:", oldestChild.classList);
+
+        // Check if classList itself exists before trying to use .contains()
+        if (oldestChild.classList && oldestChild.classList.contains('is-streaming') && logFeedList.children.length <= (MAX_LOG_ENTRIES + 3)) {
+            // console.log("UIUpdater: Oldest log entry is still streaming, delaying removal (within buffer).");
+            break;
+        }
+
+        // If we reach here, either oldestChild.classList didn't exist (which is bad),
+        // it wasn't streaming, or we are beyond the buffer.
+        // console.log("UIUpdater: Removing oldest log entry:", oldestChild.textContent ? oldestChild.textContent.substring(0,20) + "..." : "Empty Node");
+        try {
+            logFeedList.removeChild(oldestChild);
+        } catch (e) {
+            // console.error("UIUpdater: Error removing oldestChild. It might have been removed by another process.", e);
+            // If an error occurs here, it might mean the child was already gone.
+            // The loop condition will be checked again.
+            break; // Exit loop to prevent potential infinite loop if removeChild fails consistently
         }
     }
-
-    const messageEl = document.createElement('div');
-    messageEl.classList.add('feedback-message', type);
-    messageEl.textContent = message;
-
-    feedbackContainer.appendChild(messageEl);
-    activeFeedbackMessages.push(messageEl); // Add to our tracking array
-
-    requestAnimationFrame(() => {
-        messageEl.classList.add('show');
-    });
-
-    setTimeout(() => {
-        messageEl.classList.remove('show');
-        messageEl.addEventListener('transitionend', () => {
-            if (messageEl.parentElement) {
-                messageEl.remove();
-            }
-            // Remove from tracking array once transition is done and removed
-            activeFeedbackMessages = activeFeedbackMessages.filter(msg => msg !== messageEl);
-        }, { once: true });
-    }, duration);
 }
 
 // --- Private Functions ---
@@ -145,3 +206,6 @@ function handleGameStateChange(event) {
 // Add more functions here to update other UI parts like modals, character status, etc.
 
 console.log('UIUpdater: Module Loaded.');
+
+// Filename: ui-updater.js
+// Directory: assets/js/ui/

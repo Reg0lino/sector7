@@ -47,15 +47,28 @@ const EVENT_CATALOG = [
         minDirectorLevel: 1,
         ordersAffected: 0,
         originalOrderCompleteFn: null, // To wrap OrderSystem.orderComplete
-        effect_on_start: () => {
-            // This is more complex: needs to modify scoring temporarily.
-            // GameState might need a temporaryScoreMultiplier.
-            GameState.setTemporaryBonus("rushOrder", 50); // GameState needs this function
-            UIUpdater.showFeedbackMessage("EVENT: Rush Order! Bonus Creds!", "success", 3000);
+        effect_on_start: function() {
+            console.log("EventManager: Rush Order! effect_on_start called.");
+            // --- DEFENSIVE CHECK & LOGGING ---
+            if (UIUpdater && typeof UIUpdater.showFeedbackMessage === 'function') {
+                const message = `EVENT: ${this.name || 'Unknown Event'} activated! ${this.description || ''}`;
+                console.log("EventManager: Attempting to show feedback for Rush Order start:", message);
+                UIUpdater.showFeedbackMessage(message, "warning");
+            } else {
+                console.error("EventManager: UIUpdater or showFeedbackMessage not available when Rush Order started!");
+            }
+            GameState.setTemporaryBonus("rushOrder", 50); // Example bonus
         },
-        effect_on_end: () => {
+        effect_on_end: function() {
+            console.log("EventManager: Rush Order! effect_on_end called.");
+            if (UIUpdater && typeof UIUpdater.showFeedbackMessage === 'function') {
+                const message = `EVENT: ${this.name || 'Unknown Event'} ended.`;
+                console.log("EventManager: Attempting to show feedback for Rush Order end:", message);
+                UIUpdater.showFeedbackMessage(message, "info");
+            } else {
+                console.error("EventManager: UIUpdater or showFeedbackMessage not available when Rush Order ended!");
+            }
             GameState.clearTemporaryBonus("rushOrder");
-            UIUpdater.showFeedbackMessage("Rush Order bonus ended.", "info", 2000);
         }
     },
     {
@@ -146,3 +159,6 @@ export function isEventActive(eventId) {
 }
 
 console.log("EventManager: Module Loaded.");
+
+// Filename: event-manager.js
+// Directory: assets/js/core/

@@ -139,3 +139,6 @@ export function getFragilePenaltyModifier() {
 // when the upgrade is purchased, rather than being polled every time.
 
 console.log("UpgradesSystem: Module Loaded.");
+
+// Filename: upgrades-system.js
+// Directory: assets/js/core/
