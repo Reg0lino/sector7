@@ -11,11 +11,28 @@ const ITEM_TYPES = {
 };
 
 const ITEM_VISUAL_PROFILES = {
-    [ITEM_TYPES.DATACHIP]: { color: 'blue', shape: 'rectangle_stacked', texture: 'scanlines' },
-    [ITEM_TYPES.BIOMOD]: { color: 'red', shape: 'amorphous_blob', texture: 'pulsing_core' },
-    [ITEM_TYPES.HARDWARE]: { color: 'grey', shape: 'composite_geometric', texture: 'metallic_sheen' },
-    [ITEM_TYPES.SCRAP]: { color: 'brown', shape: 'irregular_cluster', texture: 'rust_patches' },
-    [ITEM_TYPES.CORRUPTED]: { color: 'purple', shape: 'glitched_rectangle', texture: 'static_flicker' }
+    [ITEM_TYPES.DATACHIP]: {
+        color: 'var(--neon-cyan)', shape: 'rectangle_stacked', texture: 'scanlines',
+        width: '45px', height: '55px'
+    },
+    [ITEM_TYPES.BIOMOD]: {
+        color: '#ff3366', shape: 'amorphous_blob', texture: 'pulsing_core',
+        width: '55px', height: '55px'
+    },
+    [ITEM_TYPES.HARDWARE]: {
+        color: '#a0a0a0', shape: 'composite_geometric', texture: 'metallic_grid',
+        width: '55px', height: '45px'
+    },
+    [ITEM_TYPES.SCRAP]: {
+        color: '#795548', shape: 'irregular_cluster', texture: 'rust_patches',
+        width: '50px', height: '50px'
+    },
+    [ITEM_TYPES.CORRUPTED]: {
+        color: '#6a0dad', shape: 'rectangle_stacked',
+        texture: 'heavy_static_glitch',
+        animation: 'glitch-flicker-strong',
+        width: '50px', height: '50px'
+    }
 };
 
 /**
@@ -49,13 +66,15 @@ export function createItem(type, overrides = {}) {
 
     // Post-process visual profile based on properties like corruption
     if (item.corruptionLevel > 0.5) {
-        item.visualProfile.color = 'darkmagenta'; // Example
+        item.visualProfile.color = 'darkmagenta';
         item.visualProfile.texture = 'heavy_static';
     }
     if (item.isVolatile) {
-        item.visualProfile.animation = 'fast_pulse_red'; // Hint for renderer
+        item.visualProfile.animation = 'fast-pulse-red'; // Class name uses hyphens
     }
-
+    if (item.isFragile) {
+        item.visualProfile.borderStyle = 'thin-dashed-warning'; // Class name uses hyphens
+    }
 
     console.log(`ItemFactory: Created item - ID: ${item.id}, Type: ${item.type}`);
     return item;

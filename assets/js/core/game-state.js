@@ -9,6 +9,10 @@ let gamePaused = false;  // Is the game paused mid-action?
 
 const initialTime = 120; // Store initial time for resets
 
+let temporaryBonuses = {}; // e.g., { rushOrder: 50, fragileBonus: 20 }
+
+import * as OrderSystem from './order-system.js'; // To fail the order
+
 // --- Initialization ---
 export function init() {
     score = 0;
@@ -73,6 +77,11 @@ export function gameOver() {
     gamePaused = false;
     console.log(`GameState: GAME OVER. Final Score: ${finalScore}`);
 
+    // --- IF GAME OVER DUE TO TIME AND ORDER IS ACTIVE, FAIL IT ---
+    if (timeLeft <= 0 && currentOrder) {
+        OrderSystem.failCurrentOrder("Time Expired"); // This will notify AIDirector
+    }
+
     // Dispatch event for ModalSystem to pick up
     document.dispatchEvent(new CustomEvent('showmodal', {
         detail: {
@@ -136,6 +145,27 @@ export function setCurrentOrder(order) {
         console.log('GameState: Current order cleared.');
     }
     // UIUpdater.updateOrders is now called by OrderSystem directly when an order is generated/updated
+}
+
+// --- Temporary Bonuses Management ---
+export function setTemporaryBonus(bonusId, bonusValue) {
+    temporaryBonuses[bonusId] = bonusValue;
+    console.log(`GameState: Temporary bonus "${bonusId}" of ${bonusValue} activated.`);
+}
+
+export function clearTemporaryBonus(bonusId) {
+    if (temporaryBonuses[bonusId]) {
+        console.log(`GameState: Temporary bonus "${bonusId}" cleared.`);
+        delete temporaryBonuses[bonusId];
+    }
+}
+
+export function getActiveBonusesValue() {
+    let totalBonus = 0;
+    for (const bonusId in temporaryBonuses) {
+        totalBonus += temporaryBonuses[bonusId];
+    }
+    return totalBonus;
 }
 
 // --- Getters (to safely access state from other modules) ---

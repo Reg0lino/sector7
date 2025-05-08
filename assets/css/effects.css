@@ -1,0 +1,25 @@
+/* assets/css/effects.css - CSS-driven animations, transitions */ 
+.flicker { animation: flicker-anim 1.5s infinite alternate; } 
+@keyframes flicker-anim { 
+    0% { opacity: 1; } 
+    20% { opacity: 0.8; } 
+    100% { opacity: 1; } 
+}
+
+.text-flicker-strong {
+    animation: text-flicker-anim-strong 0.15s infinite steps(1, end);
+}
+
+@keyframes text-flicker-anim-strong {
+    0% { opacity: 1; transform: skewX(0deg) translateX(0); }
+    10% { opacity: 0.3; color: var(--neon-magenta); transform: skewX(-5deg) translateX(-2px); }
+    20% { opacity: 1; transform: skewX(0deg) translateX(0); }
+    30% { opacity: 0.5; color: var(--neon-cyan); transform: skewX(5deg) translateX(2px); }
+    40% { opacity: 1; transform: skewX(0deg) translateX(0); }
+    50% { opacity: 0.2; }
+    60% { opacity: 1; }
+    70% { opacity: 0.4; transform: skewY(-3deg) translateY(-1px); }
+    80% { opacity: 1; transform: skewY(0deg) translateY(0); }
+    90% { opacity: 0.6; }
+    100% { opacity: 1; }
+}

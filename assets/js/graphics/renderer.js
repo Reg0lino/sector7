@@ -2,8 +2,8 @@
 
 import * as GameState from '../core/game-state.js';
 import * as UIUpdater from '../ui/ui-updater.js';
-// --- ADD THIS IMPORT ---
 import * as Conveyor from '../core/conveyor.js';
+import * as EventManager from '../core/event-manager.js';
 // Future imports: Conveyor, ItemSystem, ParticleSystem, etc.
 
 let lastTimestamp = 0;      // Timestamp of the last frame
@@ -29,8 +29,8 @@ function gameLoop(timestamp) { // timestamp is provided by requestAnimationFrame
             lastTimestamp = timestamp - (deltaTime % frameDuration); // Adjust for more consistent timing
 
             // 1. Update Game Logic (Physics, Item Movement, etc.)
-            // --- ADD THIS LINE ---
             Conveyor.update(deltaTime); // Pass deltaTime in milliseconds
+            EventManager.update(deltaTime); // Update event manager
 
             // 2. Handle Input
             // Example: InputHandler.processInput();
@@ -76,6 +76,7 @@ function gameLoop(timestamp) { // timestamp is provided by requestAnimationFrame
 }
 
 export function startGameLoop() {
+    console.log("Renderer.startGameLoop(): ENTERED"); // <-- ADD THIS
     if (gameLoopId) {
         console.warn("Renderer: startGameLoop called but loop is already running.");
         return;

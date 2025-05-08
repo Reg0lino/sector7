@@ -8,6 +8,10 @@ import * as BinSystem from './core/bin-system.js';
 import * as ItemFactory from './core/item-factory.js'; // Used by OrderSystem & Conveyor
 import * as Conveyor from './core/conveyor.js';
 import * as OrderSystem from './core/order-system.js';
+import * as AIDirector from './core/ai-director.js';
+import * as EventManager from './core/event-manager.js';
+import * as UpgradesSystem from './core/upgrades-system.js';
+import * as PlayerState from './core/player-state.js'; // Ensure PlayerState is imported
 
 // --- Main Game Initialization Function ---
 function initGame() {
@@ -37,6 +41,18 @@ function initGame() {
     OrderSystem.init();
     console.log('Main: OrderSystem initialized.');
 
+    // --- INITIALIZE AI DIRECTOR ---
+    AIDirector.init();
+    console.log('Main: AIDirector initialized.');
+
+    // --- INITIALIZE EVENT MANAGER ---
+    EventManager.init();
+    console.log('Main: EventManager initialized.');
+
+    // --- INITIALIZE UPGRADES SYSTEM ---
+    UpgradesSystem.init();
+    console.log('Main: UpgradesSystem initialized.');
+
     // 7. Initialize Modal System
     ModalSystem.init();
     console.log('Main: ModalSystem initialized. Initial modal should be visible.');
@@ -53,6 +69,7 @@ function initGame() {
 // Ensures the DOM is fully loaded and parsed before running any game initialization code.
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Main: DOM fully loaded and parsed.');
+    PlayerState.init(); // Initialize PlayerState ONCE when DOM is ready
     initGame(); // Call our main initialization function
 });
 

@@ -9,6 +9,9 @@ let orderDisplay = null;
 let feedbackContainer = null;
 // Add more for other UI elements as needed, e.g., modal elements
 
+const MAX_FEEDBACK_MESSAGES = 3; // Max messages to show at once
+let activeFeedbackMessages = []; // To keep track of message elements
+
 // --- Initialization: Called once when the game loads to grab DOM elements ---
 export function init() {
     scoreDisplay = document.getElementById('current-score-display');
@@ -80,33 +83,40 @@ export function updateOrders(orderInfo) { // orderInfo can be simple text or a s
     }
 }
 
-export function showFeedbackMessage(message, type = 'info', duration = 3000) {
+export function showFeedbackMessage(message, type = 'info', duration = 2500) { // Shorter default duration
     if (!feedbackContainer) {
         console.warn('UIUpdater: Feedback container not found, cannot show message.');
         return;
     }
 
+    // Remove oldest message if max is reached
+    if (activeFeedbackMessages.length >= MAX_FEEDBACK_MESSAGES) {
+        const oldestMessage = activeFeedbackMessages.shift(); // Get the first (oldest) element
+        if (oldestMessage && oldestMessage.parentElement) {
+            oldestMessage.remove(); // Remove it from DOM immediately
+        }
+    }
+
     const messageEl = document.createElement('div');
-    messageEl.classList.add('feedback-message', type); // type can be 'success', 'error', 'info' as per effects.css
+    messageEl.classList.add('feedback-message', type);
     messageEl.textContent = message;
 
     feedbackContainer.appendChild(messageEl);
+    activeFeedbackMessages.push(messageEl); // Add to our tracking array
 
-    // Trigger enter animation (defined in effects.css or main.css)
-    // We need to ensure the element is in the DOM before adding 'show' class for transition
     requestAnimationFrame(() => {
         messageEl.classList.add('show');
     });
 
-    // Automatically remove the message after the duration
     setTimeout(() => {
         messageEl.classList.remove('show');
-        // Wait for the fade-out transition to complete before removing the element
         messageEl.addEventListener('transitionend', () => {
-            if (messageEl.parentElement) { // Check if still in DOM
+            if (messageEl.parentElement) {
                 messageEl.remove();
             }
-        }, { once: true }); // {once: true} ensures the listener is removed after firing
+            // Remove from tracking array once transition is done and removed
+            activeFeedbackMessages = activeFeedbackMessages.filter(msg => msg !== messageEl);
+        }, { once: true });
     }, duration);
 }
 
