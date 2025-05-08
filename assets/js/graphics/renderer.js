@@ -4,6 +4,7 @@ import * as GameState from '../core/game-state.js';
 import * as UIUpdater from '../ui/ui-updater.js';
 import * as Conveyor from '../core/conveyor.js';
 import * as EventManager from '../gameplay/event-manager.js';
+import * as BackgroundEffects from './background-effects.js';
 // Future imports: Conveyor, ItemSystem, ParticleSystem, etc.
 
 let lastTimestamp = 0;      // Timestamp of the last frame
@@ -31,6 +32,13 @@ function gameLoop(timestamp) { // timestamp is provided by requestAnimationFrame
             // 1. Update Game Logic (Physics, Item Movement, etc.)
             Conveyor.update(deltaTime); // Pass deltaTime in milliseconds
             EventManager.update(deltaTime); // Update event manager
+
+            if (BackgroundEffects && typeof BackgroundEffects.update === 'function') {
+                BackgroundEffects.update(deltaTime); // Call the update
+                console.count('BackgroundEffects.update CALLED'); // <<<< ADD THIS COUNTER
+            } else {
+                console.warn("Renderer: BackgroundEffects.update is not available.");
+            }
 
             // 2. Handle Input
             // Example: InputHandler.processInput();

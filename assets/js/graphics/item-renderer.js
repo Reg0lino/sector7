@@ -53,15 +53,38 @@ export function createItemElement(itemData, parentElement) {
     if (itemData.isVolatile) itemEl.classList.add('is-volatile');
     itemEl.draggable = true;
     itemEl.addEventListener('dragstart', (event) => {
-        // --- CRITICAL LINE FOR SETTING DRAG DATA ---
-        if (event.dataTransfer && itemData && itemData.id) {
-            event.dataTransfer.setData('text/plain', itemData.id); // Ensure itemData.id is a valid string
-            event.dataTransfer.effectAllowed = 'move';
-            itemEl.classList.add('dragging');
-            // console.log(`DragStart: Set data for item ID: ${itemData.id}`); // Good for debugging
+        // --- MORE DETAILED LOGGING ---
+        console.log(`DragStart Fired: event.target is:`, event.target); // What element triggered this?
+        console.log(`DragStart Fired: Does target match itemEl?`, event.target === itemEl);
+        console.log(`DragStart Fired: Item Data for this element:`, itemData); // Log the associated itemData
+
+        if (event.target !== itemEl) {
+            console.warn("DragStart WARNING: Event target is not the item element itself! Preventing drag.");
+            event.preventDefault(); // Stop drag if target is wrong
+            hideItemTooltip();
+            return;
+        }
+
+        // --- Stricter check on itemData.id before setting ---
+        if (event.dataTransfer && itemData && typeof itemData.id === 'string' && itemData.id.startsWith('item-')) {
+            try {
+                event.dataTransfer.setData('text/plain', itemData.id);
+                event.dataTransfer.effectAllowed = 'move';
+                itemEl.classList.add('dragging');
+                console.log(`DragStart SUCCESS: Set data for item ID: "${itemData.id}"`);
+            } catch (e) {
+                console.error("DragStart ERROR during setData:", e);
+                event.preventDefault(); // Prevent drag if setData fails
+            }
         } else {
-            console.error("DragStart: Failed to set drag data. event.dataTransfer or itemData.id is missing.", event.dataTransfer, itemData);
-            event.preventDefault(); // Prevent dragging if data can't be set
+            console.error("DragStart FAILED: Pre-conditions not met.", {
+                hasDataTransfer: !!event.dataTransfer,
+                hasItemData: !!itemData,
+                itemId: itemData ? itemData.id : undefined,
+                isItemIdString: typeof itemData?.id === 'string',
+                doesItemIdStartWithItem: typeof itemData?.id === 'string' && itemData.id.startsWith('item-')
+            });
+            event.preventDefault();
         }
         hideItemTooltip();
     });

@@ -53,6 +53,7 @@ export function initBins() {
         binEl.addEventListener('drop', (event) => {
             event.preventDefault();
             binEl.classList.remove('drag-over');
+            console.log("BinSystem Drop: Drop target element:", event.target); // Log the element the drop occurred on
 
             // --- CRITICAL LINE FOR GETTING DRAG DATA ---
             let itemId = null;

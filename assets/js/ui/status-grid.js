@@ -2,30 +2,32 @@
 
 const GRID_ROWS = 5;
 const GRID_COLS = 10;
-let gridCells = [];
+let gridCells = []; // Will store references to the DOM elements of cells
 let gridContainer = null;
 
 const CELL_STATE_CLASSES = {
     off: 'cell-off',
-    normal: 'cell-normal',
-    warning: 'cell-warning',
-    error: 'cell-error',
-    surge: 'cell-surge',
-    lag: 'cell-lag',
-    corruption: 'cell-corruption'
+    normal: 'cell-normal', // e.g., system OK green
+    warning: 'cell-warning', // e.g., pulsing yellow
+    error: 'cell-error',   // e.g., solid red
+    surge: 'cell-surge',   // e.g., bright cyan, animated
+    lag: 'cell-lag',     // e.g., dim blue, slow pulse
+    corruption: 'cell-corruption' // e.g., glitchy magenta
 };
 
-let currentPatternInterval = null;
+let currentPatternInterval = null; // To store setInterval ID for patterns
 
 export function init() {
-    gridContainer = document.getElementById('status-grid-display');
+    gridContainer = document.getElementById('status-grid-display'); // Assuming this ID in HTML
     if (!gridContainer) {
         console.error("StatusGrid: Container #status-grid-display not found!");
         return;
     }
-    gridContainer.innerHTML = '';
+
+    gridContainer.innerHTML = ''; // Clear any previous content
     gridContainer.style.setProperty('--grid-rows', GRID_ROWS);
     gridContainer.style.setProperty('--grid-cols', GRID_COLS);
+
     gridCells = [];
     for (let r = 0; r < GRID_ROWS; r++) {
         gridCells[r] = [];
@@ -37,7 +39,7 @@ export function init() {
         }
     }
     console.log("StatusGrid: Initialized with", GRID_ROWS * GRID_COLS, "cells.");
-    setOverallStatus('normal');
+    setOverallStatus('normal'); // Start with a normal pattern
 }
 
 function clearAllPatterns() {
@@ -45,10 +47,11 @@ function clearAllPatterns() {
         clearInterval(currentPatternInterval);
         currentPatternInterval = null;
     }
+    // Reset all cells to 'off' or a base state before applying new pattern
     gridCells.flat().forEach(cell => {
         Object.values(CELL_STATE_CLASSES).forEach(cls => cell.classList.remove(cls));
         cell.classList.add(CELL_STATE_CLASSES.off);
-        cell.style.animation = 'none';
+        cell.style.animation = 'none'; // Clear any inline animations
     });
 }
 
@@ -56,17 +59,18 @@ export function setOverallStatus(statusType) {
     if (!gridContainer) return;
     clearAllPatterns();
     console.log("StatusGrid: Setting overall status to", statusType);
+
     switch (statusType) {
         case 'normal':
             currentPatternInterval = setInterval(() => {
                 const r = Math.floor(Math.random() * GRID_ROWS);
                 const c = Math.floor(Math.random() * GRID_COLS);
                 flashCell(gridCells[r][c], CELL_STATE_CLASSES.normal, 300);
-                if (Math.random() < 0.3) {
+                if (Math.random() < 0.3) { // Some stay lit longer
                      gridCells[r][c].classList.add(CELL_STATE_CLASSES.normal);
                      setTimeout(()=> gridCells[r][c].classList.remove(CELL_STATE_CLASSES.normal), 1000 + Math.random()*2000);
                 }
-            }, 200);
+            }, 200); // Random blips
             break;
         case 'warning':
             gridCells.flat().forEach((cell, i) => {
@@ -80,9 +84,11 @@ export function setOverallStatus(statusType) {
                 cell.classList.remove(CELL_STATE_CLASSES.off);
                 cell.classList.add(CELL_STATE_CLASSES.error);
             });
+            // Optionally flash the whole grid container border
             gridContainer.style.animation = 'flashBorderError 0.5s infinite alternate';
             break;
         case 'surge':
+            // Rapidly light up cells in sequence
             let surgeIndex = 0;
             const flatCells = gridCells.flat();
             currentPatternInterval = setInterval(() => {
@@ -90,7 +96,8 @@ export function setOverallStatus(statusType) {
                     flashCell(flatCells[surgeIndex], CELL_STATE_CLASSES.surge, 100);
                     surgeIndex++;
                 } else {
-                    surgeIndex = 0;
+                    surgeIndex = 0; // Loop
+                    // Briefly turn all surge then off to reset for next wave
                     flatCells.forEach(c => c.classList.add(CELL_STATE_CLASSES.surge));
                     setTimeout(()=> flatCells.forEach(c => c.classList.remove(CELL_STATE_CLASSES.surge)), 50);
                 }
@@ -105,17 +112,17 @@ export function setOverallStatus(statusType) {
             break;
         case 'corruption':
             currentPatternInterval = setInterval(() => {
-                for (let i = 0; i < 3; i++) {
+                for (let i = 0; i < 3; i++) { // Glitch a few cells each tick
                     const r = Math.floor(Math.random() * GRID_ROWS);
                     const c = Math.floor(Math.random() * GRID_COLS);
                     const originalClasses = Array.from(gridCells[r][c].classList);
-                    gridCells[r][c].className = 'status-grid-cell';
+                    gridCells[r][c].className = 'status-grid-cell'; // Clear other state classes
                     gridCells[r][c].classList.add(CELL_STATE_CLASSES.corruption);
                     setTimeout(() => {
-                        gridCells[r][c].className = 'status-grid-cell';
+                        gridCells[r][c].className = 'status-grid-cell'; // Clear again
                         originalClasses.forEach(cls => { if(cls !== CELL_STATE_CLASSES.corruption) gridCells[r][c].classList.add(cls) });
-                        if(!gridCells[r][c].classList.contains(CELL_STATE_CLASSES.normal) && !gridCells[r][c].classList.contains(CELL_STATE_CLASSES.warning)){
-                           gridCells[r][c].classList.add(CELL_STATE_CLASSES.off);
+                        if(!gridCells[r][c].classList.contains(CELL_STATE_CLASSES.normal) && !gridCells[r][c].classList.contains(CELL_STATE_CLASSES.warning) /* etc */){
+                           gridCells[r][c].classList.add(CELL_STATE_CLASSES.off); // Default back to off if no other base state
                         }
                     }, 100 + Math.random() * 100);
                 }
@@ -126,23 +133,32 @@ export function setOverallStatus(statusType) {
     }
 }
 
+// Helper to temporarily flash a cell a certain color
 function flashCell(cellElement, stateClass, durationMs) {
     if (!cellElement) return;
     const originalClasses = Array.from(cellElement.classList);
+    // cellElement.className = 'status-grid-cell'; // Clear previous state classes for the flash
     Object.values(CELL_STATE_CLASSES).forEach(cls => cellElement.classList.remove(cls));
+
     cellElement.classList.add(stateClass);
     setTimeout(() => {
         cellElement.classList.remove(stateClass);
+        // Restore original classes that are not state indicators, or set to 'off'
         let hasBaseState = false;
         originalClasses.forEach(cls => {
             if (cls !== 'status-grid-cell' && !Object.values(CELL_STATE_CLASSES).includes(cls)) {
+                 // This logic is tricky, better to just revert to 'off' or the current global state
             }
         });
-        if (!cellElement.classList.contains(CELL_STATE_CLASSES.normal)) {
+        if (!cellElement.classList.contains(CELL_STATE_CLASSES.normal) && /* other persistent states */ true) {
+             // After a flash, if no persistent pattern is running for THIS cell, turn it off.
+             // This needs to be smarter if patterns are layered. For now, simple flash.
              if(![CELL_STATE_CLASSES.warning, CELL_STATE_CLASSES.lag, CELL_STATE_CLASSES.error].some(cls => cellElement.classList.contains(cls))){
                 cellElement.classList.add(CELL_STATE_CLASSES.off);
              }
         }
+
+
     }, durationMs);
 }
 

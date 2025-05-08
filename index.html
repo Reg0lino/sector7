@@ -14,7 +14,16 @@
 </head>
 <body>
     <div id="game-container">
-        <div id="scanline-overlay"></div>
+        <!-- ADD FIXER COMMS WINDOW HERE -->
+        <div id="fixer-comms-window" class="hidden">
+            <div class="fixer-comms-portrait">
+                <!-- Image or placeholder will go here -->
+            </div>
+            <div class="fixer-comms-text">
+                <h4 class="fixer-comms-name">FIXER NAME</h4>
+                <p class="fixer-comms-message">Message text goes here...</p>
+            </div>
+        </div>
 
         <header id="ui-bar">
             <div class="ui-panel orders-panel">
@@ -25,6 +34,15 @@
                 <h3>TIME</h3>
                 <div id="time-left-display" class="glitch-text" data-text="00:00">00:00</div>
             </div>
+
+            <!-- STATUS GRID WRAPPER ADDED HERE -->
+            <div class="ui-panel status-grid-panel">
+                <h3>SYS-STATUS</h3>
+                <div id="status-grid-display">
+                    <!-- Grid cells will be generated here by JS -->
+                </div>
+            </div>
+
             <div class="ui-panel score-panel">
                 <h3>SCORE</h3>
                 <div id="current-score-display" class="glitch-text" data-text="0">0</div>

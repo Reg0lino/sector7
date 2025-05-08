@@ -13,6 +13,7 @@ import * as EventManager from './gameplay/event-manager.js';
 import * as UpgradesSystem from './core/upgrades-system.js';
 import * as PlayerState from './core/player-state.js'; // Ensure PlayerState is imported
 import * as ItemRenderer from './graphics/item-renderer.js';
+import * as BackgroundEffects from './graphics/background-effects.js';
 
 // --- Main Game Initialization Function ---
 function initGame() {
@@ -61,6 +62,10 @@ function initGame() {
     // --- INITIALIZE UPGRADES SYSTEM ---
     UpgradesSystem.init();
     console.log('Main: UpgradesSystem initialized.');
+
+    // --- INITIALIZE BACKGROUND EFFECTS ---
+    BackgroundEffects.init(); // Needs game-container
+    console.log('Main: BackgroundEffects initialized.');
 
     // 7. Initialize Modal System
     ModalSystem.init();
