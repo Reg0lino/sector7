@@ -1,51 +1,66 @@
 /* assets/css/items.css - Procedural item styles */
 
 .game-item {
-    position: absolute;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    display: flex; /* Helps center inner content like cores/shapes */
+    position: absolute; /* Crucial for conveyor belt movement */
+    /* Default appearance, will be overridden by specific types/profiles */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    display: flex; /* For inner elements like segments or cores */
     align-items: center;
     justify-content: center;
     cursor: grab;
-    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, opacity 0.2s ease;
-    background-clip: padding-box; /* Keeps background within padding edge */
-    overflow: hidden; /* Prevent inner elements like glows bleeding out weirdly */
+    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out; /* For drag feedback */
 }
 
-.game-item.dragging {
+.game-item:active, .game-item.dragging {
     cursor: grabbing;
-    transform: scale(1.15);
-    box-shadow: 0 0 18px var(--neon-yellow);
-    z-index: 100;
-    /* Opacity of the original element is handled by JS */
+    transform: scale(1.1);
+    box-shadow: 0 0 15px var(--neon-yellow);
+    z-index: 100; /* Bring to front when dragging */
 }
 
 /* --- BASE ITEM TYPE STYLES (can be overridden by profile or specific classes) --- */
 .item-type-datachip { background-color: var(--neon-cyan); }
 .item-type-biomod { background-color: #ff3366; /* Vivid pink/red */ }
-.item-type-hardware-common { background-color: #a0a0a0; }
-.item-type-scrap { background-color: #795548; }
-.item-type-corrupted-data { background-color: #6a0dad; }
+.item-type-hardware-common { background-color: #777; border: 2px outset #999; }
+.item-type-scrap {
+    background-color: #5a3e2b; /* Rusty brown */
+    border-radius: 3px 8px 2px 5px !important; /* Irregular */
+    border: 1px solid #3b2a1d;
+}
+.item-type-scrap::before { /* Fake texture */
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(0,0,0,0.1) 5px, rgba(0,0,0,0.1) 7px);
+}
+.item-type-corrupted-data { background-color: darkmagenta; }
 
 /* --- SHAPE CLASSES --- */
-.item-shape-rectangle-stacked {
-    padding: 3px;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    flex-direction: column; /* Stack segments vertically */
-    justify-content: space-around; /* Space out segments */
-    align-items: center; /* Center segments horizontally */
+.item-shape-rect-stacked {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 2px;
+    background-color: transparent !important; /* Override base if container only */
+    border: none;
 }
-.item-shape-rectangle-stacked .item-segment {
-    width: 90%; /* Slightly narrower than container */
-    height: 28%;
+.item-shape-rect-stacked .item-segment {
+    width: 90%;
+    height: 25%;
+    background-color: var(--neon-cyan); /* Default, should be set by item type */
+    border: 1px solid rgba(0,0,0,0.2);
     border-radius: 2px;
-    border: 1px solid rgba(0,0,0,0.3);
-    box-shadow: inset 0 0 3px rgba(0,0,0,0.2);
-    /* Background color is ideally set by JS based on item base color */
+    margin: auto;
 }
+.item-type-datachip .item-segment { background-color: var(--neon-cyan); } /* Example color */
+.item-type-corrupted-data .item-segment { background-color: darkmagenta; filter: blur(0.5px); }
+
+.item-shape-blob {
+    /* animation: morph 8s ease-in-out infinite alternate; */ /* Can be too performance heavy */
+    /* border-radius is set by JS for variety for now */
+}
+/* Add @keyframes morph if you use it */
 
 .item-shape-amorphous-blob {
     /* border-radius set dynamically by JS */
@@ -64,7 +79,6 @@
      /* Styles set by JS for now */
 }
 
-
 .item-shape-irregular-cluster { /* For Scrap */
     border-radius: 30% 70% 50% 50% / 50% 30% 70% 50% !important; /* Force irregular shape */
 }
@@ -78,42 +92,27 @@
     100% { transform: translate(1px, -1px) skew(2deg); opacity: 0.85; }
 }
 
-
 /* --- TEXTURE CLASSES --- */
 .item-texture-scanlines {
-    position: relative;
-}
-.item-texture-scanlines::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: repeating-linear-gradient( 0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.2) 2px, rgba(0, 0, 0, 0.2) 3px );
-    background-size: 100% 4px;
-    pointer-events: none;
-    z-index: 1;
+    background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.3) 3px,
+        rgba(0, 0, 0, 0.3) 4px
+    );
+    background-size: 100% 5px; /* Adjust scanline density */
 }
 
-.item-texture-pulsing-core {
-    display: flex; /* Ensure flex properties from base .game-item work */
-    justify-content: center;
-    align-items: center;
-}
-.item-texture-pulsing-core .item-core {
+.item-texture-pulsing .item-core {
     width: 40%;
     height: 40%;
+    background-color: rgba(255, 255, 255, 0.7);
     border-radius: 50%;
-    animation: pulse-core 1.2s infinite alternate ease-in-out;
-    z-index: 1; /* Above item background */
-    /* Base color set by JS or more specific type */
-    background-color: rgba(255,255,255,0.8);
-    box-shadow: 0 0 8px white;
+    animation: pulse-core 1.5s infinite alternate;
+    box-shadow: 0 0 10px white, 0 0 5px white inset;
 }
-/* Example specific core color */
-.item-type-biomod .item-core {
-    background-color: #ff8a80;
-    box-shadow: 0 0 12px #ff8a80;
-}
-
+.item-type-biomod .item-core { background-color: #ff6347; box-shadow: 0 0 10px #ff6347, 0 0 5px #ff8a50 inset; }
 
 .item-texture-metallic-sheen { /* For hardware */
     background-image: linear-gradient( -75deg, transparent 30%, rgba(255, 255, 255, 0.15) 45%, rgba(255, 255, 255, 0.15) 55%, transparent 70% );
@@ -133,7 +132,6 @@
     background-size: 10px 10px;
     border: 1px solid #555;
 }
-
 
 .item-texture-rust-patches { /* For scrap */
     position: relative;
@@ -171,7 +169,6 @@
   0% { transform: translate(0,0); } 100% { transform: translate(2px,1px); }
 }
 
-
 /* --- ANIMATION CLASSES --- */
 .item-animation-fast-pulse-red { /* For volatile */
     animation: fast-pulse-red-anim 0.5s infinite alternate;
@@ -185,6 +182,17 @@
     animation: text-flicker-anim-strong 0.15s infinite steps(1, end); /* Reuse from effects.css */
 }
 
+.item-type-corrupted-data.item-shape-rect-stacked .item-segment {
+    animation: glitch-flicker 0.1s infinite alternate;
+}
+
+@keyframes glitch-flicker {
+    0% { opacity: 1; transform: translateX(0); }
+    25% { opacity: 0.7; transform: translateX(-1px); }
+    50% { opacity: 1; transform: translateX(1px); }
+    75% { opacity: 0.8; transform: skewX(5deg); }
+    100% { opacity: 1; transform: translateX(0); }
+}
 
 /* --- BORDER STYLE CLASSES --- */
 .item-border-thin-dashed-warning { /* For fragile */

@@ -65,13 +65,17 @@ export function updateOrders(orderInfo) { // orderInfo can be simple text or a s
             orderDisplay.textContent = orderInfo;
         } else if (orderInfo && typeof orderInfo === 'object') {
             // Example for a structured order object:
-            // orderInfo = { item: "Data Chip", quantity: 3, progress: 1, target: "Alpha" }
+            // orderInfo = { item: "Data Chip", quantity: "1/3", target: "Alpha" }
             let qtyText = orderInfo.progress !== undefined
                 ? `${orderInfo.progress}/${orderInfo.quantity || 'N/A'}`
                 : `${orderInfo.quantity || 'N/A'}`;
+            // If quantity is already a string like "1/3", just use it
+            if (typeof orderInfo.quantity === 'string') {
+                qtyText = orderInfo.quantity;
+            }
             let orderHTML = `REQ: <span class="order-quantity">${qtyText}</span> `;
             orderHTML += `<span class="order-item-name">${orderInfo.item || 'UNKNOWN ITEM'}</span>`;
-            if(orderInfo.target) { // Changed from targetBin to target to match OrderSystem
+            if(orderInfo.target) {
                 orderHTML += ` → <span class="order-target-bin">${orderInfo.target}</span>`;
             }
             orderDisplay.innerHTML = orderHTML;

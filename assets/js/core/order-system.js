@@ -1,6 +1,5 @@
 // assets/js/core/order-system.js - Generates and manages player orders
 
-// --- ADD THIS IMPORT ---
 import * as AIDirector from './ai-director.js';
 import * as ItemFactory from './item-factory.js';
 import * as GameState from './game-state.js';

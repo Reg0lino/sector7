@@ -225,10 +225,8 @@ function addModalButtonListeners(type) {
         };
     }
 
-    if (closeModalButton) { // Generic close / Exit Shop
-         closeModalButton.onclick = () => {
-             closeModalAndHandleState();
-         };
+    if (closeModalButton) { // Generic close button for unknown types
+        closeModalButton.onclick = () => closeModal();
     }
 }
 
